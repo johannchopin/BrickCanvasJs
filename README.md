@@ -2,7 +2,7 @@
 
 Devil -> http://me.brickapic.com/
 
-https://fr.wikipedia.org/wiki/Lego#/media/File:Lego_dimensions.svg
+![Lego model](https://fr.wikipedia.org/wiki/Lego#/media/File:Lego_dimensions.svg)
 
 ## ToDo List :
 
