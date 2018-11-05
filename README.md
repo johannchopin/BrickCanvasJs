@@ -2,7 +2,7 @@
 
 Devil -> http://me.brickapic.com/
 
-![Lego model](https://www.lapetitebrique.com/8363-thickbox_default/lego-accessoires-minifig-livre-noir.jpg)
+![Lego model](https://www.brickgun.com/Dimensions/images/BrickGun%20LEGO_Brick_Dimensions.jpg)
 
 ## ToDo List :
 
