@@ -108,8 +108,3 @@ function averageColor(datas) {
 
     return rgb;
 }
-
-// Create a visuel representation (canvas) from colors in @datasGrid
-function showDatasGrid(datasGrid, canvasWdt) {
-
-}
