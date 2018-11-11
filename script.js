@@ -1,18 +1,20 @@
-var legoInRow = 48;
-
-
-// Start the process
-window.onload = function() {
-	input.addEventListener('change', function(e) {
-		handleFiles(input.files);
-	}, false)
-}
-
+const LEGO_IN_ROW = 48;
 var input = document.getElementById("file");
 var canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
 canvas.setAttribute("id", "imgInCanvas");
 
+
+// Main function
+window.onload = function() {
+	input.addEventListener('change', async function(e) {
+
+		// Array with average color from areas in selected img
+		const IMG_COLORS_ARRAY = await handleFiles(input.files);
+
+		console.log(IMG_COLORS_ARRAY);
+	}, false)
+}
 
 
 /*
@@ -28,44 +30,50 @@ GridColor.prototype.showDatas = function() {
 };
 
 
-
 function processDatas(datas) {
 	var explodedImg = new GridColor(datas);
 	explodedImg.showDatas();
 }
 
+
+// Create Promise with the datas from img
 function handleFiles(files) {
 	let reader = new FileReader();
-
-	reader.onload = function () {
-		const img = new Image();
-		img.onload = function () {
-		    let context = canvas.getContext('2d');
-		  	let imgWdt = img.width;
-			let imgHgt = img.height;
-			
-			// Fix canvas size
-			canvas.width  = imgWdt;
-			canvas.height = imgHgt;
-
-		    context.drawImage(img, 0, 0);
-
-		    processDatas(getContextDatas(context));
-		}
-		img.src = reader.result;
-	}
 	reader.readAsDataURL(files[0]);
+
+	// Create Promise 
+	return new Promise(resolve => {
+		reader.onload = function () {
+			const img = new Image();
+			img.src = reader.result;
+
+			img.onload = function () {
+			    let context = canvas.getContext('2d');
+			  	let imgWdt = img.width;
+				let imgHgt = img.height;
+				
+				// Fix canvas size
+				canvas.width  = imgWdt;
+				canvas.height = imgHgt;
+
+			    context.drawImage(img, 0, 0);
+
+			    // Value of the Promise
+			    resolve(getContextDatas(context));
+			}
+		}
+	});
 }
 
 
 
 // Return array with average colors [Order: top left to bottom right]
 function getContextDatas(context) {
-	var legoWdt = canvas.width / legoInRow;
+	var legoWdt = canvas.width / LEGO_IN_ROW;
 	var legoHgt = legoWdt;
 	var legoInColumn = Math.trunc(canvas.height / legoHgt);
 
-	var colorsGrid = [];
+	let colorsGrid = [];
 	let cropBeginTop  = 0;
 	let cropBeginLeft;
 	let cropDatas;
@@ -75,10 +83,14 @@ function getContextDatas(context) {
 		colorsGrid[row] = [];
 		cropBeginLeft = 0;
 		// Parse all column in row from the canvas
-		for (let col = 0; col < legoInRow; col++) {
+		for (let col = 0; col < LEGO_IN_ROW; col++) {
 			cropDatas = context.getImageData(cropBeginLeft, cropBeginTop, legoWdt, legoHgt);
+			
+			// Add average color from the area in colorsGrid
 			colorsGrid[row][col] = averageColor(cropDatas.data);
-			cropBeginLeft += legoWdt; // Go to the next column
+		
+			// Go to the next column	
+			cropBeginLeft += legoWdt;
 		}
 		cropBeginTop += legoHgt; // Go to the next row
 	}
@@ -101,7 +113,7 @@ function averageColor(datas) {
         totalColorCount++;
     }
 
-    // Calc the average
+    // Calculate the average color
     rgb.r = Math.trunc(rgb.r / totalColorCount);
     rgb.g = Math.trunc(rgb.g / totalColorCount);
     rgb.b = Math.trunc(rgb.b / totalColorCount);
