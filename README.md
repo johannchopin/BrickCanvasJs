@@ -7,3 +7,4 @@ Devil -> http://me.brickapic.com/
 ## ToDo List :
 
 - [x] Create index, css, js
+- [x] Create function who catch the average color from areas and return it in a array -> handleFiles(imgToProcess)
