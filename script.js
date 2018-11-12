@@ -6,6 +6,49 @@ const COLORS = new Map([
 	["black", [0,0,0]]
 ]);
 
+// Datas found here -> https://lego.fandom.com/wiki/Colour_Palette
+// Key -> legoColorId / Value -> rgbArray
+const LEGO_COLORS = new Map([
+	[194, [156,146,145]],
+	[1,   [255,255,255]],
+	[199, [76,81,86]],
+	[26,  [0,0,0]],
+	[5,   [217,187,123]],
+	[192, [91,28,12]],
+	[21,  [255,0,0]],
+	[24,  [255,255,0]],
+	[23,  [0,0,255]],
+	[106, [255,102,0]],
+	[28,  [0,153,0]],
+	[154, [128,8,27]],
+	[119, [149,185,11]],
+	[191, [244,155,0]],
+	[324, [160,110,185]],
+	[138, [141,116,82]],
+	[322, [104,195,226]]
+]);
+
+// Datas found here -> http://brickarchitect.com/2018/lego_colors/
+const LEGO_COLORS_NAME = new Map([
+	[194, "Medium Stone Grey"],
+	[1,   "White"],
+	[199, "Dark Stone Grey"],
+	[26,  "Black"],
+	[5,   "Brick Yellow"],
+	[192, "Reddish Brown"],
+	[21,  "Bright Red"],
+	[24,  "Bright Yellow"],
+	[23,  "Bright Blue"],
+	[106, "Bright Orange"],
+	[28,  "Dark Green"],
+	[154, "Dark Red"],
+	[119, "Bright Yellowwish Green"],
+	[191, "Flame Yellowwish Orange"],
+	[324, "Medium Lavender"],
+	[138, "Sand Yellow"],
+	[322, "Medium Azur"]
+]);
+
 var input = document.getElementById("file");
 
 // Create canvas to work
@@ -23,9 +66,10 @@ window.onload = function() {
 
 		// Create GridColor object
 		var img = new GridColor(IMG_COLORS_ARRAY);
-
+		
 		// Insert in DOM a svg representation from the given array
 		document.body.appendChild(representDatas(600, IMG_COLORS_ARRAY));
+
 	}, false)
 }
 
@@ -100,7 +144,9 @@ function getContextDatas(context) {
 			cropDatas = context.getImageData(cropBeginLeft, cropBeginTop, legoWdt, legoHgt);
 			
 			// Add average color from the area in colorsGrid
-			colorsGrid[row][col] = averageColor(cropDatas.data);
+			let averageColorZone = averageColor(cropDatas.data);
+			let nearestLegoColor = nearestColor(LEGO_COLORS, averageColorZone);
+			colorsGrid[row][col] = nearestLegoColor;
 		
 			// Go to the next column	
 			cropBeginLeft += legoWdt;
@@ -139,19 +185,18 @@ function averageColor(datas) {
 
 
 // Return the nearest defined color from a given rgba color
-function nearestColor(rgbaMap) {
+function nearestColor(givenColors, rgbArray) {
 	// Initialize a to big dispertion index
 	const COLOR_NAME_INDEX = 0;
 	const DISPERTION_VALUE_INDEX = 1;
-	let nearestColor = ["notARealColor", 300];
+	let nearestColor = ["notARealColor", 600];
 
 	// Calcul all the dispertion index for each colors
-	for (let key of COLORS.keys()) {
+	for (let key of givenColors.keys()) {
 		let dispersionValue = 0;
-
-		// We don't use the 'a' value from a rgba color 
-		for (let i = 0; i < rgbaMap.length - 1; i++) {
-			dispersionValue += Math.abs(rgbaMap[i] - COLORS.get(key)[i]);
+ 
+		for (let i = 0; i < rgbArray.length - 1; i++) {
+			dispersionValue += Math.abs(rgbArray[i] - givenColors.get(key)[i]);
 		}
 
 		if(dispersionValue < nearestColor[DISPERTION_VALUE_INDEX]) {
@@ -187,14 +232,14 @@ function representDatas(svgWdth, datasArray) {
 		// Coordinate x for the svg's element
 		let x = 0;
     	let g = document.createElementNS(svgNS,'g');
-    	console.log(i, svgHgt);
     	g.setAttribute("transform", "translate(0," + Math.trunc(i * rectHgt) + ")");
 		
 		// Parse all columns from the array
 		for (let j = 0; j < colNumber; j++) {
-			let colorR = datasArray[i][j][0],
-				colorG = datasArray[i][j][1],
-				colorB = datasArray[i][j][2];
+			let legoColor = LEGO_COLORS.get(datasArray[i][j]);
+			let colorR = legoColor[0],
+				colorG = legoColor[1],
+				colorB = legoColor[2];
 			let color = "rgb(" + colorR + "," + colorG + "," + colorB + ")";
 
 			let rect = document.createElementNS(svgNS,'rect');
