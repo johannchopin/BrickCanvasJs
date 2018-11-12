@@ -64,33 +64,43 @@ window.onload = function() {
 		// Array with average color from areas in selected img
 		const IMG_COLORS_ARRAY = await handleFiles(input.files);
 
-		// Create GridColor object
-		var img = new GridColor(IMG_COLORS_ARRAY);
+		// Create LegoPortrait object
+		var legoPortrait1 = new LegoPortrait();
+		legoPortrait1.setAverageColorArray(IMG_COLORS_ARRAY);
+		legoPortrait1.setLegoColorsArray();
+		legoPortrait1.setLegoPortraitRepresentation(300);
+		console.log(legoPortrait1);
 		
 		// Insert in DOM a svg representation from the given array
-		document.body.appendChild(representDatas(600, IMG_COLORS_ARRAY));
+		document.body.appendChild(legoPortrait1.legoPortraitRepresentation);
 
 	}, false)
 }
 
 
-/*
-*
-* CridColor object constructor
-*
-*/
-var GridColor = function(array) {
-	this.datas = array;
-	this.showDatas = function() {
-		console.log(this.datas);
-	};
+// LegoPortrait object
+function LegoPortrait() {
+
+	this.setAverageColorArray = function(array) {
+		this.averageColorsArray = array;
+	}
+
+	this.setLegoColorsArray = function() {
+		let legoColorsArray = this.averageColorsArray;
+		for (let row = 0; row < legoColorsArray.length; row++) {
+			for (let col = 0; col < legoColorsArray[row].length; col++) {
+				let legoColor = nearestColor(legoColorsArray[row][col]);
+				legoColorsArray[row][col] = legoColor;
+			}
+		}
+		this.legoColorsArray = legoColorsArray;
+	}
+
+	// @width musst be a int given in px
+	this.setLegoPortraitRepresentation = function(width) {
+		this.legoPortraitRepresentation = representLegoColors(width, this.legoColorsArray);
+	}
 };
-
-
-function processDatas(datas) {
-	var explodedImg = new GridColor(datas);
-	explodedImg.showDatas();
-}
 
 
 // Create Promise with the datas from img
@@ -144,9 +154,7 @@ function getContextDatas(context) {
 			cropDatas = context.getImageData(cropBeginLeft, cropBeginTop, legoWdt, legoHgt);
 			
 			// Add average color from the area in colorsGrid
-			let averageColorZone = averageColor(cropDatas.data);
-			let nearestLegoColor = nearestColor(LEGO_COLORS, averageColorZone);
-			colorsGrid[row][col] = nearestLegoColor;
+			colorsGrid[row][col] = averageColor(cropDatas.data);
 		
 			// Go to the next column	
 			cropBeginLeft += legoWdt;
@@ -185,18 +193,19 @@ function averageColor(datas) {
 
 
 // Return the nearest defined color from a given rgba color
-function nearestColor(givenColors, rgbArray) {
+function nearestColor(rgbArray) {
 	// Initialize a to big dispertion index
 	const COLOR_NAME_INDEX = 0;
 	const DISPERTION_VALUE_INDEX = 1;
+	const COLORS_IN_ARRAY = 3;
 	let nearestColor = ["notARealColor", 600];
 
 	// Calcul all the dispertion index for each colors
-	for (let key of givenColors.keys()) {
+	for (let key of LEGO_COLORS.keys()) {
 		let dispersionValue = 0;
  
-		for (let i = 0; i < rgbArray.length - 1; i++) {
-			dispersionValue += Math.abs(rgbArray[i] - givenColors.get(key)[i]);
+		for (let i = 0; i < COLORS_IN_ARRAY; i++) {
+			dispersionValue += Math.abs(rgbArray[i] - LEGO_COLORS.get(key)[i]);
 		}
 
 		if(dispersionValue < nearestColor[DISPERTION_VALUE_INDEX]) {
@@ -208,7 +217,7 @@ function nearestColor(givenColors, rgbArray) {
 
 
 // Return a svg representation from an array
-function representDatas(svgWdth, datasArray) {
+function representLegoColors(svgWdth, datasArray) {
 	var rowNumber = datasArray.length;
 	var colNumber = datasArray[0].length;
 
