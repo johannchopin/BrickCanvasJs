@@ -66,13 +66,14 @@ window.onload = function() {
 
 		// Create LegoPortrait object
 		var legoPortrait1 = new LegoPortrait();
-		legoPortrait1.setAverageColorArray(IMG_COLORS_ARRAY);
+		legoPortrait1.setAverageColorArray(IMG_COLORS_ARRAY);	
+		console.log(legoPortrait1.averageColorsArray);	
 		legoPortrait1.setLegoColorsArray();
 		legoPortrait1.setLegoPortraitRepresentation(300);
-		console.log(legoPortrait1);
 		
 		// Insert in DOM a svg representation from the given array
 		document.body.appendChild(legoPortrait1.legoPortraitRepresentation);
+		document.body.appendChild(representLegoColors(300, legoPortrait1.averageColorsArray));		
 
 	}, false)
 }
@@ -85,6 +86,9 @@ function LegoPortrait() {
 		this.averageColorsArray = array;
 	}
 
+	// !!
+	// Bug rewritte averageColorArray from object
+	// !!
 	this.setLegoColorsArray = function() {
 		let legoColorsArray = this.averageColorsArray;
 		for (let row = 0; row < legoColorsArray.length; row++) {
