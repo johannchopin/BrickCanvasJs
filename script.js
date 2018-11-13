@@ -75,26 +75,25 @@ const UNCOMMON_LEGO_COLORS_NAME = new Map([
 
 var input = document.getElementById("file");
 
-// Create canvas to work
-var canvas = document.createElement('canvas');
-document.body.appendChild(canvas);
-canvas.setAttribute("id", "imgInCanvas");
-
 
 // Main function
 window.onload = function() {
 	input.addEventListener('change', async function(e) {
 
 		// Array with average color from areas in selected img
-		const IMG_COLORS_ARRAY = await handleFiles(input.files);
+		//const IMG_COLORS_ARRAY = await handleFiles(input.files);
 
 		// Create LegoPortrait object
 		var legoPortrait = new LegoPortrait();
-		legoPortrait.setAverageColorsArray(IMG_COLORS_ARRAY);
-		legoPortrait.setLegoColorsArray(legoPortrait.getAverageColorsArray());	
-		
-		// Insert in DOM a svg representation from the given array
+		legoPortrait.setImg(await handleFiles(input.files));
+
+		legoPortrait.setAverageColorsArray(getAverageColorsFromImg(legoPortrait.getImg()));
+		legoPortrait.setLegoColorsArray();
+
+		document.body.appendChild(legoPortrait.getImg());
 		document.body.appendChild(legoPortrait.getLegoPortraitRepresentation(300));
+		// Insert in DOM a svg representation from the given array
+		//document.body.appendChild(legoPortrait.getLegoPortraitRepresentation(300));
 		//document.body.appendChild(representLegoColors(300, legoPortrait.averageColorsArray));		
 
 	}, false)
@@ -104,17 +103,25 @@ window.onload = function() {
 // LegoPortrait object
 function LegoPortrait() {
 
-	this.averageColorsArray = null;
-	this.legoColorsArray 	= null; 
+	this.img 						= null;
+	this.averageColorsArray 		= null;
+	this.legoColorsArray 			= null; 
 	this.legoPortraitRepresentation = null;
 
+	this.setImg = function(img) {
+		this.img = img;
+	}
 	this.setAverageColorsArray = function(array) {
 		this.averageColorsArray = array;
 	}
-	this.setLegoColorsArray = function(array) {
-		this.legoColorsArray = averageColorsToLegoColors(array.slice());
+	this.setLegoColorsArray = function() {
+		this.legoColorsArray = averageColorsToLegoColors(this.getAverageColorsArray().slice());
 	}
 
+
+	this.getImg = function() {
+		return this.img;
+	}	
 	this.getAverageColorsArray = function() {
 		return this.averageColorsArray;
 	}
@@ -129,7 +136,7 @@ function LegoPortrait() {
 
 
 
-// Create Promise with the datas from img
+// Create Promise which contain the imported img
 function handleFiles(files) {
 	let reader = new FileReader();
 	reader.readAsDataURL(files[0]);
@@ -140,31 +147,39 @@ function handleFiles(files) {
 			const img = new Image();
 			img.src = reader.result;
 
+			// Img have to be load 
 			img.onload = function () {
-			    let context = canvas.getContext('2d');
-			  	let imgWdt = img.width;
-				let imgHgt = img.height;
-				
-				// Fix canvas size
-				canvas.width  = imgWdt;
-				canvas.height = imgHgt;
-
-			    context.drawImage(img, 0, 0);
-
-			    // Value of the Promise
-			    resolve(getContextDatas(context));
+			    resolve(img);
 			}
 		}
 	});
 }
 
 
+function getAverageColorsFromImg(img) {
+	// Create canvas to work on it
+	let canvas = document.createElement('canvas');
+	let context = canvas.getContext('2d');
+	let imgWdt = img.width;
+	let imgHgt = img.height;
+
+	// Fix canvas size
+	canvas.width  = imgWdt;
+	canvas.height = imgHgt;
+
+	context.drawImage(img, 0, 0);
+
+	let colorsFromImg = getContextDatas(imgWdt, imgHgt, context);
+
+	return colorsFromImg;
+}
+
 
 // Return array with average colors [Order: top left to bottom right]
-function getContextDatas(context) {
-	var legoWdt = canvas.width / LEGO_IN_ROW;
+function getContextDatas(canvasParentWdt, canvasParentHgt, context) {
+	var legoWdt = canvasParentWdt / LEGO_IN_ROW;
 	var legoHgt = legoWdt;
-	var legoInColumn = Math.trunc(canvas.height / legoHgt);
+	var legoInColumn = Math.trunc(canvasParentHgt / legoHgt);
 
 	let colorsGrid = [];
 	let cropBeginTop  = 0;
