@@ -27,6 +27,18 @@ const LEGO_COLORS = new Map([
 	[138, [141,116,82]],
 	[322, [104,195,226]]
 ]);
+const UNCOMMON_LEGO_COLORS = new Map([
+	[140, [0,37,65]],
+	[102, [71,140,198]],
+	[222, [238,157,195]],
+	[268, [44,21,119]],
+	[124, [153,0,102]],
+	[221, [222,55,139]],
+	[151, [95,130,101]],
+	[323, [211,242,234]],
+	[38,  [168,61,21]],
+	[141, [0,51,0]]
+]);
 
 // Datas found here -> http://brickarchitect.com/2018/lego_colors/
 const LEGO_COLORS_NAME = new Map([
@@ -48,6 +60,18 @@ const LEGO_COLORS_NAME = new Map([
 	[138, "Sand Yellow"],
 	[322, "Medium Azur"]
 ]);
+const UNCOMMON_LEGO_COLORS_NAME = new Map([
+	[140, "Earth Blue"],
+	[102, "Medium Blue"],
+	[222, "Light Purple"],
+	[268, "Medium Lilac"],
+	[124, "Bright Reddish Violet"],
+	[221, "Bright Purple"],
+	[151, "Sand Green"],
+	[323, "Aqua"],
+	[38,  "Dark Orange"],
+	[141, "Earth Green"]
+]);
 
 var input = document.getElementById("file");
 
@@ -65,15 +89,13 @@ window.onload = function() {
 		const IMG_COLORS_ARRAY = await handleFiles(input.files);
 
 		// Create LegoPortrait object
-		var legoPortrait1 = new LegoPortrait();
-		legoPortrait1.setAverageColorArray(IMG_COLORS_ARRAY);	
-		console.log(legoPortrait1.averageColorsArray);	
-		legoPortrait1.setLegoColorsArray();
-		legoPortrait1.setLegoPortraitRepresentation(300);
+		var legoPortrait = new LegoPortrait();
+		legoPortrait.setAverageColorsArray(IMG_COLORS_ARRAY);
+		legoPortrait.setLegoColorsArray(legoPortrait.getAverageColorsArray());	
 		
 		// Insert in DOM a svg representation from the given array
-		document.body.appendChild(legoPortrait1.legoPortraitRepresentation);
-		document.body.appendChild(representLegoColors(300, legoPortrait1.averageColorsArray));		
+		document.body.appendChild(legoPortrait.getLegoPortraitRepresentation(300));
+		//document.body.appendChild(representLegoColors(300, legoPortrait.averageColorsArray));		
 
 	}, false)
 }
@@ -82,29 +104,29 @@ window.onload = function() {
 // LegoPortrait object
 function LegoPortrait() {
 
-	this.setAverageColorArray = function(array) {
+	this.averageColorsArray = null;
+	this.legoColorsArray 	= null; 
+	this.legoPortraitRepresentation = null;
+
+	this.setAverageColorsArray = function(array) {
 		this.averageColorsArray = array;
 	}
-
-	// !!
-	// Bug rewritte averageColorArray from object
-	// !!
-	this.setLegoColorsArray = function() {
-		let legoColorsArray = this.averageColorsArray;
-		for (let row = 0; row < legoColorsArray.length; row++) {
-			for (let col = 0; col < legoColorsArray[row].length; col++) {
-				let legoColor = nearestColor(legoColorsArray[row][col]);
-				legoColorsArray[row][col] = legoColor;
-			}
-		}
-		this.legoColorsArray = legoColorsArray;
+	this.setLegoColorsArray = function(array) {
+		this.legoColorsArray = averageColorsToLegoColors(array.slice());
 	}
 
+	this.getAverageColorsArray = function() {
+		return this.averageColorsArray;
+	}
+	this.getLegoColorsArray = function() {
+		return this.legoColorsArray;
+	}
 	// @width musst be a int given in px
-	this.setLegoPortraitRepresentation = function(width) {
-		this.legoPortraitRepresentation = representLegoColors(width, this.legoColorsArray);
+	this.getLegoPortraitRepresentation = function(width) {
+		return representLegoColors(width, this.getLegoColorsArray());;
 	}
 };
+
 
 
 // Create Promise with the datas from img
@@ -265,4 +287,19 @@ function representLegoColors(svgWdth, datasArray) {
 		svg.appendChild(g);
 	}
 	return svg;
+}
+
+// Array composed by rgb value in array
+function averageColorsToLegoColors(array) {
+	let legoInRow = array.length;
+	let legoInCol = array[0].length
+	let legoColorsArray = [];
+	for (let row = 0; row < legoInRow; row++) {
+		legoColorsArray[row] = [];
+		for (let col = 0; col < legoInCol; col++) {
+			let legoColor = nearestColor(array[row][col]);
+			legoColorsArray[row][col] = legoColor;
+		}
+	}
+	return legoColorsArray;
 }
