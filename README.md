@@ -11,3 +11,4 @@ Devil -> http://me.brickapic.com/
 
 - [x] Create index, css, js
 - [x] Create function who catch the average color from areas and return it in a array -> handleFiles(imgToProcess)
+- [ ] Use nice botton https://codepen.io/soulrider911/full/qhEzf
